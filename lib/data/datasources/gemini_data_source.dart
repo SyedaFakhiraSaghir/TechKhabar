@@ -11,7 +11,7 @@ class GeminiDataSource {
     http.Client? client,
   }) : client = client ?? http.Client();
 
-  static const String _model = 'gemini-pro';
+  static const String _model = 'gemini-2.0-flash-exp';
   
   /// Get system prompt based on category
   String _getSystemPrompt(String category) {
@@ -139,18 +139,22 @@ class GeminiDataSource {
       },
     };
 
-    final response = await client.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(requestBody),
-    );
+    try {
+      final response = await client.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
 
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      final text = jsonData['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      return text ?? '';
-    } else {
-      throw Exception('Gemini API error (${response.statusCode}): ${response.body}');
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        final text = jsonData['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        return text ?? '';
+      } else {
+        throw Exception('Gemini API error (${response.statusCode}): ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch from Gemini ($category, model: $_model): $e');
     }
   }
 
