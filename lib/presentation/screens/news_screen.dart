@@ -27,7 +27,7 @@ class _NewsScreenState extends State<NewsScreen> {
       appBar: AppBar(
         title: RichText(
           text: TextSpan(
-            text: 'Briefly',
+            text: 'TechKhabar',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
             children: const <TextSpan>[
               TextSpan(
@@ -77,11 +77,57 @@ class _NewsScreenState extends State<NewsScreen> {
           }
 
           if (state is NewsError) {
-            return Center(child: Text('Error: ${state.message}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Error: ${state.message}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<NewsBloc>().add(LoadNews());
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           }
 
           if (state is NewsLoaded) {
             final news = state.news;
+
+            if (news.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.newspaper, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No news found',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<NewsBloc>().add(LoadNews());
+                      },
+                      child: const Text('Refresh'),
+                    ),
+                  ],
+                ),
+              );
+            }
 
             final List<Map<String, dynamic>> categories = [
               {

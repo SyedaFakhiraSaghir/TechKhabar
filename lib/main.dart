@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'bloc/news_bloc.dart';
+import 'data/datasources/gemini_data_source.dart';
 import 'data/datasources/news_remote_data_source.dart';
 import 'data/repositories/news_repository.dart';
 import 'presentation/screens/news_screen.dart';
 
-void main() {
-  final repository = NewsRepository(remoteDataSource: NewsRemoteDataSource());
+void main() async {
+  await dotenv.load();
+  final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+  
+  if (apiKey.isEmpty) {
+    throw Exception('GEMINI_API_KEY not found in .env file');
+  }
+  
+  final geminiDataSource = GeminiDataSource(apiKey: apiKey);
+  final remoteDataSource = NewsRemoteDataSource(geminiDataSource: geminiDataSource);
+  final repository = NewsRepository(remoteDataSource: remoteDataSource);
 
   runApp(NewsApp(repository: repository));
 }
