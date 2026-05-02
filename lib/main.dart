@@ -10,14 +10,22 @@ import 'presentation/screens/news_screen.dart';
 
 void main() async {
   await dotenv.load();
-  final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
   
-  if (apiKey.isEmpty) {
-    throw Exception('GEMINI_API_KEY not found in .env file');
+  // Load API keys for all categories
+  final apiKeys = {
+    'Tech': dotenv.env['GEMINI_API_KEY_TECH'] ?? '',
+    'Sports': dotenv.env['GEMINI_API_KEY_SPORTS'] ?? '',
+    'Politics': dotenv.env['GEMINI_API_KEY_POLITICS'] ?? '',
+    'Crypto': dotenv.env['GEMINI_API_KEY_CRYPTO'] ?? '',
+    'Design': dotenv.env['GEMINI_API_KEY_DESIGN'] ?? '',
+  };
+  
+  // Verify that at least one API key is available
+  if (apiKeys.values.every((key) => key.isEmpty)) {
+    throw Exception('No API keys found in .env file');
   }
   
-  final geminiDataSource = GeminiDataSource(apiKey: apiKey);
-  final remoteDataSource = NewsRemoteDataSource(geminiDataSource: geminiDataSource);
+  final remoteDataSource = NewsRemoteDataSource(apiKeys: apiKeys);
   final repository = NewsRepository(remoteDataSource: remoteDataSource);
 
   runApp(NewsApp(repository: repository));

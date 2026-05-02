@@ -7,7 +7,7 @@ class NewsRepository {
   NewsRepository({required this.remoteDataSource});
 
   Future<List<NewsItem>> getTechNews() {
-    return remoteDataSource.fetchNews();
+    return remoteDataSource.fetchNews(category: 'Tech');
   }
 
   Future<List<NewsItem>> getNewsByTopic(String topic) {

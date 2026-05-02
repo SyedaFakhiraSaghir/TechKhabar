@@ -15,10 +15,34 @@ class NewsScreen extends StatefulWidget {
 }
 
 class _NewsScreenState extends State<NewsScreen> {
+  late ScrollController _scrollController;
+  String _selectedCategory = 'Tech';
+
   @override
   void initState() {
     super.initState();
-    context.read<NewsBloc>().add(LoadNews());
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+    context.read<NewsBloc>().add(LoadNews(category: _selectedCategory));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      context.read<NewsBloc>().add(LoadMoreNews(category: _selectedCategory));
+    }
+  }
+
+  void _onCategoryChanged(String category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+    context.read<NewsBloc>().add(LoadNews(category: category));
   }
 
   @override
@@ -94,7 +118,7 @@ class _NewsScreenState extends State<NewsScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<NewsBloc>().add(LoadNews());
+                      context.read<NewsBloc>().add(LoadNews(category: _selectedCategory));
                     },
                     child: const Text('Retry'),
                   ),
@@ -103,10 +127,11 @@ class _NewsScreenState extends State<NewsScreen> {
             );
           }
 
-          if (state is NewsLoaded) {
-            final news = state.news;
+          if (state is NewsLoaded || state is NewsLoadingMore) {
+            final news = state is NewsLoaded ? state.news : (state as NewsLoadingMore).news;
+            final isLoadingMore = state is NewsLoadingMore;
 
-            if (news.isEmpty) {
+            if (news.isEmpty && !isLoadingMore) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -120,7 +145,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        context.read<NewsBloc>().add(LoadNews());
+                        context.read<NewsBloc>().add(LoadNews(category: _selectedCategory));
                       },
                       child: const Text('Refresh'),
                     ),
@@ -135,20 +160,36 @@ class _NewsScreenState extends State<NewsScreen> {
                 'color': Colors.lime,
                 'textColor': Colors.black,
               },
-              {'label': 'Sports'},
-              {'label': 'Politics'},
-              {'label': 'Crypto'},
-              {'label': 'Design'},
+              {
+                'label': 'Sports',
+                'color': Colors.orange,
+                'textColor': Colors.black,
+              },
+              {
+                'label': 'Politics',
+                'color': Colors.blue,
+                'textColor': Colors.white,
+              },
+              {
+                'label': 'Crypto',
+                'color': Colors.purple,
+                'textColor': Colors.white,
+              },
+              {
+                'label': 'Design',
+                'color': Colors.pink,
+                'textColor': Colors.white,
+              },
             ];
 
             return RefreshIndicator(
               onRefresh: () async {
-                // Simply dispatch the LoadNews event, just like in initState
-                context.read<NewsBloc>().add(LoadNews());
+                context.read<NewsBloc>().add(LoadNews(category: _selectedCategory));
               },
               child: ListView.builder(
+                controller: _scrollController,
                 padding: EdgeInsets.zero,
-                itemCount: news.length + 2, // 1 for chips row, 1 for spacing
+                itemCount: news.length + 2 + (isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     // Chips row at top of the list
@@ -159,18 +200,21 @@ class _NewsScreenState extends State<NewsScreen> {
                         child: Row(
                           children: List.generate(categories.length, (i) {
                             final category = categories[i];
-                            final leftPadding = i == 0 ? 16.0 : 16.0;
+                            final isSelected = category['label'] == _selectedCategory;
+                            final leftPadding = i == 0 ? 16.0 : 8.0;
                             return Padding(
                               padding: EdgeInsets.only(left: leftPadding),
-                              child: Chip(
+                              child: FilterChip(
                                 label: Text(
                                   category['label'],
                                   style: TextStyle(
-                                    color:
-                                        category['textColor'] ?? Colors.white,
+                                    color: isSelected ? category['textColor'] : Colors.white,
                                   ),
                                 ),
-                                backgroundColor: category['color'],
+                                backgroundColor: isSelected ? category['color'] : Colors.grey.shade800,
+                                onSelected: (_) {
+                                  _onCategoryChanged(category['label']);
+                                },
                               ),
                             );
                           }),
@@ -180,6 +224,12 @@ class _NewsScreenState extends State<NewsScreen> {
                   } else if (index == 1) {
                     // Spacing after chips row
                     return const SizedBox(height: 8);
+                  } else if (index == news.length + 2 && isLoadingMore) {
+                    // Loading indicator at bottom
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
                   } else {
                     // News cards
                     return Padding(

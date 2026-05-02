@@ -11,15 +11,33 @@ class GeminiDataSource {
     http.Client? client,
   }) : client = client ?? http.Client();
 
-  static const String _model = 'gemini-2.5-flash';
+  static const String _model = 'gemini-pro';
   
-  // Pre-configured system prompt and conversation history
-  static const List<Map<String, dynamic>> _baseConversation = [
+  /// Get system prompt based on category
+  String _getSystemPrompt(String category) {
+    switch (category) {
+      case 'Tech':
+        return 'You are an expert tech news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You do not give long paragraphs but just bullet points with summaries.';
+      case 'Sports':
+        return 'You are an expert sports news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on sports updates, match results, and player news. You do not give long paragraphs but just bullet points with summaries.';
+      case 'Politics':
+        return 'You are an expert political news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on political developments, elections, and government news. You do not give long paragraphs but just bullet points with summaries.';
+      case 'Crypto':
+        return 'You are an expert cryptocurrency and blockchain news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on crypto market news, blockchain developments, and digital assets. You do not give long paragraphs but just bullet points with summaries.';
+      case 'Design':
+        return 'You are an expert design and UX news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on design trends, UI/UX developments, and creative industry news. You do not give long paragraphs but just bullet points with summaries.';
+      default:
+        return 'You are an expert news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You do not give long paragraphs but just bullet points with summaries.';
+    }
+  }
+  
+  // Base conversation structure
+  List<Map<String, dynamic>> _getBaseConversation(String category) => [
     {
       'role': 'user',
       'parts': [
         {
-          'text': 'You are an expert news reporter who tech related curates content and provides a brief to the point response in roman urdu. You do not give long paragraphs but just some bullet points with the summary.\n',
+          'text': _getSystemPrompt(category),
         },
       ],
     },
@@ -27,23 +45,20 @@ class GeminiDataSource {
       'role': 'model',
       'parts': [
         {
-          'text': '**Defining the Parameters**\n\nI\'m solidifying my understanding of the user\'s role: tech news reporter in Roman Urdu, brief responses, and bullet points. My focus is now on immediate content gathering, ensuring the responses are concise and fit the format. The search is on for recent tech news.\n\n**Refining the Approach**\n\nI\'m now zeroing in on the content requirements. My mission is to embody a tech news reporter, crafting responses exclusively in Roman Urdu. I\'ll need to tailor my output to bullet points, emphasizing brevity. I\'m prioritizing recent developments, keeping in mind the date is May 2nd, 2026, for sourcing fresh news.\n\n**Analyzing Urdu Tech News**\n\nI\'ve located several Urdu tech news headlines and noted the mention of Roman Urdu. My focus is now on extracting the key information. I plan to present this news in bullet points, formatted in Roman Urdu as per the user\'s request. This task is taking shape, and I think it will be a streamlined output.\n\n**Extracting Recent Tech News**\n\nI\'ve finalized my plan. First, I\'ll identify and extract recent tech news. Next, I\'ll summarize them into Roman Urdu bullet points. My goal is brevity. I\'ve begun with the search results, and am extracting news about Chrome updates, AI threats, WhatsApp support changes, Elon Musk\'s banking plans, Meta\'s layoffs, OpenAI and DeepMind\'s models, Pakistan\'s outsourcing success, NASA\'s Artemis mission, Punjab\'s AI goals, PTA regulations, and internet disruptions in Pakistan.\n\n**Compiling Key Tech News**\n\nI\'ve gathered quite a bit more relevant tech news, now including Indian and ISRO developments. My focus has shifted towards compiling all the key information. I\'ve been organizing the data into distinct bullet points for concise Roman Urdu presentation. The goal is to provide a complete, well-organized summary. I will use the bullet point format, translating the headlines into Roman Urdu.\n\n',
-        },
-        {
-          'text': 'Breaking Tech News! Haal hi mein technology ki duniya mein kuch aham updates saamne aayi hain:\n\n*   **Google Chrome Security Update:** Google Chrome ne security masail ko theek karne ke liye naya update jari kiya hai.\n*   **AI Bots Se Cyber Attacks Mein Izafa:** AI bots ke zariye hone wale cyber hamlon mein izafe ka inkishaf hua hai.\n*   **WhatsApp Ki Support Khatam:** WhatsApp kuch purani devices par support khatam karne ja raha hai.\n*   **Elon Musk Ka Naya Banking Platform:** Elon Musk ek naya banking platform launch karne ki tayari kar rahe hain.\n*   **Meta Ki Hazaroon Mulazmeen Ko Farigh Karne Ki Taiyari:** Meta AI mein sarmayakari ki wajah se hazaron mulazmeen ko naukri se nikalne ka mansuba bana raha hai.\n*   **Naye AI Models Ka Introduction:** OpenAI aur DeepMind ne apne naye AI models mutaarif karwaye hain.\n*   **Pakistan Global Outsourcing Talent Index Mein:** Pakistan Global Outsourcing Talent Index mein 16th number par aa gaya hai.\n*   **NASA Ka Artemis 2 Mission:** 50 saal baad insaanon ki chaand ke qareeb wapsi, NASA ka Artemis 2 rocket tareekhi mission par rawana hua.\n*   **Punjab Ka AI Province Banne Ka Hadaf:** Punjab ne 2029 tak South Asia ka leading AI province banane ka hadaf rakha hai.',
+          'text': 'Main samajh gaya. Main ek $category news reporter ki tarah kaam karunga aur Roman Urdu mein brief bullet points ke saath updates doon ga.',
         },
       ],
     },
   ];
 
   /// Fetches news from Gemini API based on user query
-  Future<String> fetchNewsStream(String userQuery) async {
+  Future<String> fetchNewsStream(String userQuery, {String category = 'Tech'}) async {
     final url = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/$_model:streamGenerateContent?key=$apiKey'
     );
 
     final contents = [
-      ..._baseConversation,
+      ..._getBaseConversation(category),
       {
         'role': 'user',
         'parts': [
@@ -99,13 +114,13 @@ class GeminiDataSource {
   }
 
   /// Alternative: Non-streaming version (simpler)
-  Future<String> fetchNews(String userQuery) async {
+  Future<String> fetchNews(String userQuery, {String category = 'Tech'}) async {
     final url = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent?key=$apiKey'
     );
 
     final contents = [
-      ..._baseConversation,
+      ..._getBaseConversation(category),
       {
         'role': 'user',
         'parts': [

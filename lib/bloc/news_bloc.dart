@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:developer' as developer;
 
+import '../data/models/news_item.dart';
 import '../data/repositories/news_repository.dart';
 import 'news_event.dart';
 import 'news_state.dart';
 
 class NewsBloc extends Bloc<NewsEvent, NewsState> {
   final NewsRepository repository;
-  List<dynamic> _allNews = [];
+  List<NewsItem> _allNews = [];
   String _currentCategory = 'Tech';
 
   NewsBloc({required this.repository}) : super(NewsInitial()) {
@@ -58,7 +59,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           newsList = await repository.getNewsByTopic(event.category);
         }
         
-        final updatedNews = [...currentState.news, ...newsList];
+        final updatedNews = <NewsItem>[...currentState.news, ...newsList];
         _allNews = updatedNews;
         developer.log('Loaded more news. Total: ${updatedNews.length}');
         emit(NewsLoaded(updatedNews, category: event.category, hasMore: true));

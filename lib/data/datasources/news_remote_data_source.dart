@@ -4,18 +4,35 @@ import '../models/news_item.dart';
 import 'gemini_data_source.dart';
 
 class NewsRemoteDataSource {
-  final GeminiDataSource geminiDataSource;
+  final Map<String, String> apiKeys;
+  late final Map<String, GeminiDataSource> _geminiDataSources;
 
-  NewsRemoteDataSource({required this.geminiDataSource});
+  NewsRemoteDataSource({required this.apiKeys}) {
+    // Initialize GeminiDataSource for each category
+    _geminiDataSources = {
+      for (var entry in apiKeys.entries)
+        entry.key: GeminiDataSource(apiKey: entry.value),
+    };
+  }
 
-  /// Fetches news from Gemini API
-  Future<List<NewsItem>> fetchNews({String? query}) async {
+  /// Fetches news from Gemini API for a specific category
+  Future<List<NewsItem>> fetchNews({String? query, String category = 'Tech'}) async {
     try {
+      final geminiDataSource = _geminiDataSources[category];
+      if (geminiDataSource == null) {
+        throw Exception('No Gemini data source configured for category: $category');
+      }
+      
       // Default query if none provided
-      final userQuery = query ?? 'Aj ki latest tech news kya hain?';
+      late final String userQuery;
+      if (query != null) {
+        userQuery = query;
+      } else {
+        userQuery = _getDefaultQuery(category);
+      }
       
       // Fetch from Gemini using non-streaming method
-      final rawResponse = await geminiDataSource.fetchNews(userQuery);
+      final rawResponse = await geminiDataSource.fetchNews(userQuery, category: category);
       
       // Parse the response into NewsItem objects
       return _parseNews(rawResponse);
@@ -27,12 +44,30 @@ class NewsRemoteDataSource {
   /// Fetches news with a specific topic
   Future<List<NewsItem>> fetchNewsByTopic(String topic) async {
     final query = '$topic ke baare mein latest updates kya hain?';
-    return fetchNews(query: query);
+    return fetchNews(query: query, category: topic);
   }
 
   /// Fetches breaking news
   Future<List<NewsItem>> fetchBreakingNews() async {
-    return fetchNews(query: 'Breaking tech news today kya hai?');
+    return fetchNews(query: 'Breaking tech news today kya hai?', category: 'Tech');
+  }
+
+  /// Get default query based on category
+  String _getDefaultQuery(String category) {
+    switch (category) {
+      case 'Tech':
+        return 'Aj ki latest tech news kya hain?';
+      case 'Sports':
+        return 'Aj ki latest sports news kya hain?';
+      case 'Politics':
+        return 'Aj ki latest politics news kya hain?';
+      case 'Crypto':
+        return 'Aj ki latest crypto aur blockchain news kya hain?';
+      case 'Design':
+        return 'Aj ki latest design trends kya hain?';
+      default:
+        return 'Aj ki latest news kya hain?';
+    }
   }
 
   /// Parses Gemini response into NewsItem objects
