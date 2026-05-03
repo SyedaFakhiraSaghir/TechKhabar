@@ -15,9 +15,7 @@ void main() async {
   final apiKeys = {
     'Tech': dotenv.env['GEMINI_API_KEY_TECH'] ?? '',
     'Sports': dotenv.env['GEMINI_API_KEY_SPORTS'] ?? '',
-    'Politics': dotenv.env['GEMINI_API_KEY_POLITICS'] ?? '',
     'Crypto': dotenv.env['GEMINI_API_KEY_CRYPTO'] ?? '',
-    'Design': dotenv.env['GEMINI_API_KEY_DESIGN'] ?? '',
   };
   
   // Verify that at least one API key is available

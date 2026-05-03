@@ -166,18 +166,8 @@ class _NewsScreenState extends State<NewsScreen> {
                 'textColor': Colors.black,
               },
               {
-                'label': 'Politics',
-                'color': Colors.blue,
-                'textColor': Colors.white,
-              },
-              {
                 'label': 'Crypto',
                 'color': Colors.purple,
-                'textColor': Colors.white,
-              },
-              {
-                'label': 'Design',
-                'color': Colors.pink,
                 'textColor': Colors.white,
               },
             ];

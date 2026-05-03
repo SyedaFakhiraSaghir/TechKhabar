@@ -11,7 +11,7 @@ class GeminiDataSource {
     http.Client? client,
   }) : client = client ?? http.Client();
 
-  static const String _model = 'gemini-2.0-flash-exp';
+  static const String _model = 'gemini-2.5-flash';
   
   /// Get system prompt based on category
   String _getSystemPrompt(String category) {
@@ -20,12 +20,8 @@ class GeminiDataSource {
         return 'You are an expert tech news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You do not give long paragraphs but just bullet points with summaries.';
       case 'Sports':
         return 'You are an expert sports news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on sports updates, match results, and player news. You do not give long paragraphs but just bullet points with summaries.';
-      case 'Politics':
-        return 'You are an expert political news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on political developments, elections, and government news. You do not give long paragraphs but just bullet points with summaries.';
       case 'Crypto':
         return 'You are an expert cryptocurrency and blockchain news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on crypto market news, blockchain developments, and digital assets. You do not give long paragraphs but just bullet points with summaries.';
-      case 'Design':
-        return 'You are an expert design and UX news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You focus on design trends, UI/UX developments, and creative industry news. You do not give long paragraphs but just bullet points with summaries.';
       default:
         return 'You are an expert news reporter who curates content and provides brief, to-the-point responses in Roman Urdu. You do not give long paragraphs but just bullet points with summaries.';
     }

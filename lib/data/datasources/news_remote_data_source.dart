@@ -59,8 +59,6 @@ class NewsRemoteDataSource {
         return 'Aj ki latest tech news kya hain?';
       case 'Sports':
         return 'Aj ki latest sports news kya hain?';
-      case 'Politics':
-        return 'Aj ki latest politics news kya hain?';
       case 'Crypto':
         return 'Aj ki latest crypto aur blockchain news kya hain?';
       case 'Design':
